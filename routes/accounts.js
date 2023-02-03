@@ -471,7 +471,7 @@ module.exports.accounts = torIpsParam => {
 			verification: {
 				email: email || ''
 			},
-			verified: false,
+			verified: true,
 			games: [],
 			wins: 0,
 			losses: 0,

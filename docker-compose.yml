@@ -1,0 +1,29 @@
+services:
+  secret-monkey:
+    image: 19lemon/secret-monkey:secret-monkey
+    ports:
+      - "8888:8888"
+    environment:
+      - MONGO_URL=mongodb://mongo:27017/secret-hitler-app
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - mongo
+      - redis
+
+  mongo:
+    image: mongo:4.4
+    volumes:
+      - mongo-data:/data/db
+    ports:
+      - "27017:27017"
+      
+  redis:
+    image: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+       test: ["CMD", "redis-cli","ping"]
+
+volumes:
+  mongo-data:
+

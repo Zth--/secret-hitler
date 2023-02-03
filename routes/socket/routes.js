@@ -562,7 +562,7 @@ module.exports.socketRoutes = () => {
 			socket.on('updateRemake', data => {
 				const game = findGame(data);
 				if (authenticated && ensureInGame(passport, game)) {
-					handleUpdatedRemakeGame(passport, game, data, socket);
+					handleUpdatedRemakeGame(passport, game, data, socket, false);
 				}
 			});
 			socket.on('updateBio', data => {

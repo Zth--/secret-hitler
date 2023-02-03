@@ -202,7 +202,8 @@ const checkStartConditions = game => {
 		(game.general.isTourny && game.general.tournyInfo.queuedPlayers.length === game.general.maxPlayersCount)
 	) {
 		game.remakeData = game.publicPlayersState.map(player => ({ userName: player.userName, isRemaking: false, timesVoted: 0, remakeTime: 0 }));
-		startCountdown(game);
+		game.general.status = "OP MANDA /start NOMAS. EL JUEGO ESTA LISTO PARA ARRANCAR VAMO ARRIBA BO";
+		//startCountdown(game);
 	} else if (!game.gameState.isStarted) {
 		game.general.status = displayWaitingForPlayers(game);
 	}
@@ -1279,7 +1280,7 @@ module.exports.handleAddNewClaim = (socket, passport, game, data) => {
  * @param {object} data - from socket emit.
  * @param {object} socket - socket
  */
-module.exports.handleUpdatedRemakeGame = (passport, game, data, socket) => {
+module.exports.handleUpdatedRemakeGame = (passport, game, data, socket, forceRemake) => {
 	if (game.general.isRemade) {
 		return; // Games can only be remade once.
 	}
@@ -1293,7 +1294,10 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket) => {
 
 	const remakeText = game.general.isTourny ? 'cancel' : 'remake';
 	const { remakeData, publicPlayersState } = game;
-	if (!remakeData) return;
+	if (!remakeData) {
+		socket.emit('sendAlert', game);
+		return;
+	}
 	const playerIndex = remakeData.findIndex(player => player.userName === passport.user);
 	const realPlayerIndex = publicPlayersState.findIndex(player => player.userName === passport.user);
 	const player = remakeData[playerIndex];
@@ -1325,6 +1329,7 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket) => {
 			]
 		};
 	}
+	socket.emit('sendAlert', 'acaacacaca?.');
 
 	const makeNewGame = () => {
 		if (gameCreationDisabled.status) {
@@ -1485,10 +1490,12 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket) => {
 
 		game.general.status = 'Game is being remade..';
 		if (!game.summarySaved) {
-			const summary = game.private.summary.publish();
-			if (summary && summary.toObject() && game.general.uid !== 'devgame' && !game.general.private) {
-				summary.save();
-				game.summarySaved = true;
+			if (game.private.summary) {
+				const summary = game.private.summary.publish();
+				if (summary && summary.toObject() && game.general.uid !== 'devgame' && !game.general.private) {
+					summary.save();
+					game.summarySaved = true;
+				}
 			}
 		}
 		sendInProgressGameUpdate(game);
@@ -1531,6 +1538,17 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket) => {
 			checkStartConditions(newGame);
 		}, 3000);
 	};
+
+	if (forceRemake === true) {
+		const roomSockets = Object.keys(io.sockets.adapter.rooms[game.general.uid].sockets).map(sockedId => io.sockets.connected[sockedId]);
+		roomSockets.forEach(sock => {
+			if (sock) {
+				sock.emit('sendAlert', 'El gordo del OP acaba de hacer un rmk.');
+			}
+		});
+		makeNewGame();
+		return;
+	}
 
 	/**
 	 * @param {string} firstTableUid - the UID of the first tournament table
@@ -1672,6 +1690,35 @@ module.exports.handleAddNewGameChat = async (socket, passport, data, game, modUs
 	if (!user || !user.userName) {
 		return;
 	}
+
+	if (game.private.gameCreatorName === user.userName) {
+		if (data.chat === "/remake") {
+			// hackity hack para remakear
+			if (!game.remakeData) {
+				game.remakeData = game.publicPlayersState.map(player => ({ userName: player.userName, isRemaking: false, timesVoted: 0, remakeTime: 0 }));
+			}
+			const {
+				handleUpdatedRemakeGame,
+			} = require('./user-events');
+			handleUpdatedRemakeGame(passport, game, data, socket, true);
+			return;
+		}
+	}
+
+	if (game.private.gameCreatorName === user.userName) {
+		if (data.chat === "/start" && !game.gameState.isStarted) {
+			if (game.publicPlayersState.length < 5) {
+				socket.emit(
+					'sendAlert', 'No hay suficientes players gordo boludo. El minimo es 5'
+				);
+				return;
+			}
+			startCountdown(game);
+			return;
+		}
+	}
+	
+
 	const AEM = staffUserNames.includes(passport.user) || newStaff.modUserNames.includes(passport.user) || newStaff.editorUserNames.includes(passport.user);
 
 	data.userName = passport.user;

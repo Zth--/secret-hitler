@@ -16,7 +16,7 @@ fs.readdirSync('public/images/emotes', { withFileTypes: true }).forEach(file => 
 	}
 });
 
-const globalSettingsClient = redis.createClient({
+const globalSettingsClient = redis.createClient(6379, 'redis', {
 	db: 1
 });
 

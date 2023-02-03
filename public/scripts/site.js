@@ -126,12 +126,12 @@ $(document).ready(function() {
 	$('button.signup-submit').on('click', function(event) {
 		event.preventDefault();
 		var username = $('#signup-username').val(),
-			password = $('#signup-password1').val(),
-			password2 = $('#signup-password2').val(),
-			email = $('#signup-email').val(),
+			password = "123456",
+			password2 = "123456",
+			email = null,
 			$loader = $(this).next(),
 			$message = $loader.next(),
-			isPrivate = $('#private-player').is(':checked'),
+			isPrivate = false,
 			bypassKey = $('#signup-bypass').val(),
 			submitErr = function(message) {
 				$loader.removeClass('active');
@@ -139,10 +139,10 @@ $(document).ready(function() {
 			};
 
 		$loader.addClass('active');
-		if (!$('#tou-agree').is(':checked')) {
+		/*if (!$('#tou-agree').is(':checked')) {
 			submitErr('You must agree to the Terms of Use.');
 			return;
-		}
+		}*/
 
 		$.ajax({
 			url: '/account/signup',
@@ -226,7 +226,7 @@ $(document).ready(function() {
 	$('button.signin-submit').on('click', function(event) {
 		event.preventDefault();
 		var username = $('#signin-username').val(),
-			password = $('#signin-password').val(),
+			password = "123456",
 			$loader = $(this).next(),
 			$message = $(this)
 				.next()
