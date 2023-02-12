@@ -1348,7 +1348,7 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket, forceRem
 		}
 
 		const newGame = _.cloneDeep(game);
-		const remakePlayerNames = remakeData.filter(player => player.isRemaking).map(player => player.userName);
+		const remakePlayerNames = remakeData.map(player => player.userName);
 		const remakePlayerSocketIDs = Object.keys(io.sockets.sockets).filter(
 			socketId =>
 				io.sockets.sockets[socketId].handshake.session.passport && remakePlayerNames.includes(io.sockets.sockets[socketId].handshake.session.passport.user)
@@ -1432,12 +1432,6 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket, forceRem
 		newGame.general.chatReplTime = Array(chatReplacements.length + 1).fill(0);
 
 		newGame.publicPlayersState = game.publicPlayersState
-			.filter(player =>
-				game.remakeData
-					.filter(rmkPlayer => rmkPlayer.isRemaking)
-					.map(rmkPlayer => rmkPlayer.userName)
-					.some(rmkPlayer => rmkPlayer === player.userName)
-			)
 			.map(player => ({
 				userName: player.userName,
 				customCardback: player.customCardback,
