@@ -1329,7 +1329,6 @@ module.exports.handleUpdatedRemakeGame = (passport, game, data, socket, forceRem
 			]
 		};
 	}
-	socket.emit('sendAlert', 'acaacacaca?.');
 
 	const makeNewGame = () => {
 		if (gameCreationDisabled.status) {
